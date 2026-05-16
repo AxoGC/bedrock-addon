@@ -57,7 +57,7 @@ async function handleBind(playerName, code) {
   const trimmed = String(code || "").trim().toUpperCase();
   if (!trimmed) {
     const p = findOnlinePlayer(playerName);
-    if (p) notifyPlayer(p, "§c[平台]§r 验证码不能为空。用法：/platform:bind <CODE>");
+    if (p) notifyPlayer(p, "§c[平台]§r 验证码不能为空。用法：/axo:bind <CODE>");
     return;
   }
 
@@ -97,8 +97,8 @@ export function registerBindCommand() {
   system.beforeEvents.startup.subscribe(({ customCommandRegistry }) => {
     customCommandRegistry.registerCommand(
       {
-        name: "platform:bind",
-        description: "绑定平台账号 (用法: /platform:bind <验证码>)",
+        name: "axo:bind",
+        description: "绑定平台账号 (用法: /axo:bind <验证码>)",
         permissionLevel: CommandPermissionLevel.Any,
         cheatsRequired: false,
         mandatoryParameters: [
