@@ -1,0 +1,24 @@
+{
+  "format_version": 2,
+  "header": {
+    "name": "Platform Bridge",
+    "description": "Bedrock 接入平台 core（绑定/排行/单玩家stats/聊天）",
+    "uuid": "67724cf3-3f0a-4d54-8022-062f0c0f7db1",
+    "version": [1, 0, 0],
+    "min_engine_version": [1, 21, 84]
+  },
+  "modules": [
+    {
+      "type": "script",
+      "language": "javascript",
+      "entry": "scripts/main.js",
+      "uuid": "649c4c87-1ef9-4e07-9c93-fcb4e1cb1d58",
+      "version": [1, 0, 0]
+    }
+  ],
+  "dependencies": [
+    { "module_name": "@minecraft/server",       "version": "2.0.0" },
+    { "module_name": "@minecraft/server-net",   "version": "1.0.0-beta" },
+    { "module_name": "@minecraft/server-admin", "version": "1.0.0-beta" }
+  ]
+}
