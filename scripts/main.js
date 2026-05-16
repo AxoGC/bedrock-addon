@@ -34,7 +34,8 @@ world.afterEvents.worldLoad.subscribe(() => {
   // stats flush 定期落盘
   system.runInterval(() => flushAll(), STATS_FLUSH_INTERVAL_TICKS);
 
-  // 心跳
+  // 心跳（首条成功打一行 INFO 便于确认链路；之后只在失败时打 WARN）
+  let heartbeatOk = false;
   system.runInterval(() => {
     const players = world.getAllPlayers();
     const names = players.map(p => p.name);
@@ -42,6 +43,11 @@ world.afterEvents.worldLoad.subscribe(() => {
       online: players.length,
       max: 20,
       players: names,
+    }).then(resp => {
+      if (!heartbeatOk && resp.status >= 200 && resp.status < 300) {
+        heartbeatOk = true;
+        console.warn(`[platform] heartbeat ok (online=${players.length})`);
+      }
     }).catch(err => console.warn("[heartbeat] failed", err));
   }, HEARTBEAT_INTERVAL_TICKS);
 

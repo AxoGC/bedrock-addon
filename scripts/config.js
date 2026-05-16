@@ -1,15 +1,8 @@
-import { variables } from "@minecraft/server-admin";
-
-function readVar(key, fallback) {
-  try {
-    const v = variables.get(key);
-    if (typeof v === "string" && v.length > 0) return v;
-  } catch (_) { /* variable 未配置时 .get 会抛 */ }
-  return fallback;
-}
-
-export const BASE_URL = readVar("platformBaseUrl", "http://localhost:8080").replace(/\/+$/, "");
-export const TOKEN    = readVar("serverToken", "");
+// 运行时配置 —— 直接硬编码即可。
+// Bedrock addon 不需要打包/编译，本文件就是配置文件本身：
+// 部署到具体 BDS 时把下面两行改成真实值。仓库内保留占位，避免泄露。
+export const BASE_URL = "REPLACE_WITH_PLATFORM_URL";   // 例：https://www.axogc.net
+export const TOKEN    = "REPLACE_WITH_SERVER_TOKEN";
 
 export const POLL_TIMEOUT_SEC = 35;
 export const POST_TIMEOUT_SEC = 10;

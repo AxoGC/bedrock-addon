@@ -99,13 +99,22 @@ export function registerEventSubscriptions() {
     }
   });
 
-  world.beforeEvents.chatSend.subscribe((e) => {
-    const sender = e.sender && e.sender.name;
-    const message = e.message;
-    if (!sender || typeof message !== "string") return;
-    if (message.length === 0 || message.charAt(0) === "/") return;
-    system.run(() => onChatSend(sender, message));
-  });
+  // chatSend 在 @minecraft/server 2.0 stable 中被移除；优先 afterEvents，
+  // 兜底 beforeEvents。两个都不存在就放弃聊天镜像上报（其余功能不受影响）。
+  const chatHook = world.afterEvents && world.afterEvents.chatSend
+    ? world.afterEvents.chatSend
+    : (world.beforeEvents && world.beforeEvents.chatSend);
+  if (chatHook && typeof chatHook.subscribe === "function") {
+    chatHook.subscribe((e) => {
+      const sender = e.sender && e.sender.name;
+      const message = e.message;
+      if (!sender || typeof message !== "string") return;
+      if (message.length === 0 || message.charAt(0) === "/") return;
+      system.run(() => onChatSend(sender, message));
+    });
+  } else {
+    console.warn("[platform] world.*.chatSend unavailable in this Bedrock build; skip chat mirror");
+  }
 }
 
 export function startPlayTimeTicker() {
