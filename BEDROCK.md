@@ -413,7 +413,7 @@ const req = new HttpRequest("https://platform.example.com/api/srv/heartbeat?toke
 req.method  = HttpRequestMethod.Post;
 req.body    = JSON.stringify({ online: 5, max: 20 });
 req.headers = [new HttpHeader("Content-Type", "application/json")];
-req.timeout = 35;  // 秒，比 core 的 28s 长轮询稍长
+req.timeout = 35;  // 秒，比 core 的 20s 长轮询大幅留余量，避免 BDS HTTP 内部限制或反代空闲超时把客户端先打超
 
 const resp = await http.request(req);
 // resp: { status: number, body: string, headers: HttpHeader[] }
@@ -431,7 +431,7 @@ async function pollLoop() {
     try {
       const req = new HttpRequest(`${BASE_URL}/api/srv/poll?token=${TOKEN}`);
       req.method  = HttpRequestMethod.Get;
-      req.timeout = 35;  // 比 core 的 28s 阻塞挂起时间长，避免客户端先超时
+      req.timeout = 35;  // 比 core 的 20s 阻塞挂起时间长，避免客户端先超时
       const resp  = await http.request(req);
 
       if (resp.status === 204) {

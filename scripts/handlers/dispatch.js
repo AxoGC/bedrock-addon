@@ -5,6 +5,7 @@ import { handleKick } from "./kick.js";
 import { handleWhitelistAdd, handleWhitelistRemove } from "./whitelist.js";
 import { handleStatsFetch } from "./stats_fetch.js";
 import { handleChatFromWeb } from "./chat_from_web.js";
+import { handleAdminCommand } from "./admin_command.js";
 
 export async function dispatchEvent(event) {
   if (!event || typeof event !== "object") return;
@@ -39,6 +40,11 @@ export async function dispatchEvent(event) {
       case "player.stats.fetch": {
         const r = handleStatsFetch(data);
         if (id) await replyEvent(id, true, r).catch(e => console.warn("[reply] stats", e));
+        return;
+      }
+      case "admin.command.run": {
+        const r = handleAdminCommand(data);
+        if (id) await replyEvent(id, r.ok, r).catch(e => console.warn("[reply] admin", e));
         return;
       }
       default:

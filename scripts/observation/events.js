@@ -81,6 +81,20 @@ export function registerEventSubscriptions() {
       if (killer instanceof Player) {
         incrStats(killer.name, "pvp_kills", 1);
       }
+      const payload = { name: victim.name, cause: (e.damageSource && e.damageSource.cause) || "" };
+      if (killer instanceof Player) {
+        payload.killer = killer.name;
+        payload.killer_kind = "player";
+      } else if (killer && typeof killer.typeId === "string") {
+        payload.killer = killer.typeId.replace(/^minecraft:/, "");
+        payload.killer_kind = "mob";
+      } else {
+        payload.killer = "";
+        payload.killer_kind = "";
+      }
+      postSrv("player.died", payload).catch(err => {
+        console.warn("[event] player.died failed", err);
+      });
     } else if (killer instanceof Player) {
       incrStats(killer.name, "mob_kills_total", 1);
     }
@@ -121,6 +135,37 @@ export function startPlayTimeTicker() {
   system.runInterval(() => {
     for (const p of world.getAllPlayers()) {
       incrStats(p.name, "play_time", 1);
+    }
+  }, 20);
+}
+
+// Per-second horizontal walk distance sampler. Bedrock has no Bukkit-style
+// WALK_ONE_CM statistic, so we approximate by Δxz between samples. A jump
+// > 20m in one second is treated as a teleport / respawn and discarded.
+// Y axis is ignored so falls / climbs don't inflate the meter.
+const _lastPos = new Map();
+
+export function startWalkSampler() {
+  system.runInterval(() => {
+    const seen = new Set();
+    for (const p of world.getAllPlayers()) {
+      const name = p.name;
+      seen.add(name);
+      const loc = p.location;
+      if (!loc) continue;
+      const prev = _lastPos.get(name);
+      if (prev) {
+        const dx = loc.x - prev.x;
+        const dz = loc.z - prev.z;
+        const d = Math.sqrt(dx * dx + dz * dz);
+        if (d > 0.1 && d <= 20) {
+          incrStats(name, "walk_distance_m", d);
+        }
+      }
+      _lastPos.set(name, { x: loc.x, z: loc.z });
+    }
+    for (const name of _lastPos.keys()) {
+      if (!seen.has(name)) _lastPos.delete(name);
     }
   }, 20);
 }

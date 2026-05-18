@@ -6,7 +6,7 @@ import {
   CLEANUP_INTERVAL_TICKS,
   TOKEN,
 } from "./config.js";
-import { registerEventSubscriptions, startPlayTimeTicker } from "./observation/events.js";
+import { registerEventSubscriptions, startPlayTimeTicker, startWalkSampler } from "./observation/events.js";
 import { registerBindCommand } from "./commands/bind.js";
 import { startPoll } from "./transport/poll.js";
 import { dispatchEvent } from "./handlers/dispatch.js";
@@ -30,6 +30,9 @@ world.afterEvents.worldLoad.subscribe(() => {
 
   // play_time 累加（每秒）
   startPlayTimeTicker();
+
+  // walk_distance_m 累加（每秒按水平坐标差）
+  startWalkSampler();
 
   // stats flush 定期落盘
   system.runInterval(() => flushAll(), STATS_FLUSH_INTERVAL_TICKS);

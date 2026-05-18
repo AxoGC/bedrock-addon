@@ -14,13 +14,8 @@ export const LEADERBOARD_INTERVAL_TICKS = 60 * 60 * 20;
 export const CLEANUP_INTERVAL_TICKS     = 7 * 24 * 3600 * 20;
 export const PLAY_TIME_TICK_INTERVAL    = 20;
 
-export const LEADERBOARD_METRICS = [
-  "play_time",
-  "mob_kills_total",
-  "pvp_kills",
-  "blocks_broken_total",
-  "blocks_placed_total",
-  "valuable_broken",
-];
+// LEADERBOARD_METRICS removed — the axis set is owned by stats/axes.js
+// (AXIS_KEYS). rank/leaderboard.js imports from there directly so config
+// stays purely about runtime knobs.
 
 export const STATS_RETENTION_MS = 90 * 24 * 3600 * 1000;

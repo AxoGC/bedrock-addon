@@ -1,7 +1,8 @@
 import { world, system } from "@minecraft/server";
-import { STATS_KEY_PREFIX, LEADERBOARD_METRICS } from "../config.js";
+import { STATS_KEY_PREFIX } from "../config.js";
 import { postSrv } from "../transport/http.js";
 import { flushAll } from "../storage/stats.js";
+import { AXIS_KEYS, valueForMetric } from "../stats/axes.js";
 
 const MAX_ENTRIES = 100;
 
@@ -24,7 +25,7 @@ function* scanAllStats(into) {
 function buildEntries(rows, metric) {
   const out = [];
   for (const r of rows) {
-    const v = Number(r.stats[metric]);
+    const v = Number(valueForMetric(r.stats, metric));
     if (!isFinite(v) || v <= 0) continue;
     out.push({ name: r.name, score: v });
   }
@@ -38,7 +39,7 @@ export function* rebuildLeaderboard() {
   const rows = [];
   yield* scanAllStats(rows);
 
-  for (const metric of LEADERBOARD_METRICS) {
+  for (const metric of AXIS_KEYS) {
     const entries = buildEntries(rows, metric);
     if (entries.length === 0) { yield; continue; }
     postSrv("leaderboard.update", { metric, entries }).catch(err => {
