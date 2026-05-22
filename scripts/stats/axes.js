@@ -9,32 +9,36 @@
 // Tune scales here when balance shifts. The protocol carries percent so
 // no platform-side change is required for a tune.
 
-export const AXIS_KEYS = [
-  "walk_total_m",
-  "play_time",
-  "survival_index",
-  "blocks_placed",
-  "blocks_broken",
-  "kills_total",
+// Plugin-owned axis metadata (PLAN §10.6). Shipped verbatim to core via the
+// `metrics.list` reply so core/web stay metric-agnostic: a future axis tweak
+// is a plugin-only change. Order here = wire order = radar display order.
+export const METRICS = [
+  { key: "walk_total_m",   unit: "m", label_zh: "移动距离", label_en: "Distance",       scale: 50000,  order: 1, champion: true },
+  { key: "play_time",      unit: "s", label_zh: "在线时长", label_en: "Play Time",      scale: 360000, order: 2, champion: true },
+  { key: "survival_index", unit: "",  label_zh: "存活指数", label_en: "Survival Index", scale: 8000,   order: 3, champion: true },
+  { key: "blocks_placed",  unit: "",  label_zh: "放置方块", label_en: "Blocks Placed",  scale: 80000,  order: 4, champion: true },
+  { key: "blocks_broken",  unit: "",  label_zh: "破坏方块", label_en: "Blocks Broken",  scale: 80000,  order: 5, champion: true },
+  { key: "kills_total",    unit: "",  label_zh: "击杀数",   label_en: "Kills",          scale: 5000,   order: 6, champion: true },
 ];
 
-const UNITS = {
-  walk_total_m: "m",
-  play_time: "s",
-  survival_index: "",
-  blocks_placed: "",
-  blocks_broken: "",
-  kills_total: "",
-};
+export const AXIS_KEYS = METRICS.map(m => m.key);
 
-const SCALES = {
-  walk_total_m: 50000,    // 50 km
-  play_time: 360000,      // 100 h
-  survival_index: 8000,
-  blocks_placed: 80000,
-  blocks_broken: 80000,
-  kills_total: 5000,
-};
+const UNITS = Object.fromEntries(METRICS.map(m => [m.key, m.unit]));
+const SCALES = Object.fromEntries(METRICS.map(m => [m.key, m.scale]));
+
+// Plain copy for `metrics.list` reply — protects METRICS from accidental
+// mutation by handler code on its way out the wire.
+export function metricsPayload() {
+  return METRICS.map(m => ({
+    key: m.key,
+    unit: m.unit,
+    label_zh: m.label_zh,
+    label_en: m.label_en,
+    scale: m.scale,
+    order: m.order,
+    champion: m.champion,
+  }));
+}
 
 function num(v) {
   const n = Number(v);

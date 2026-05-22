@@ -1,10 +1,20 @@
 import { world, system } from "@minecraft/server";
 import { STATS_KEY_PREFIX } from "../config.js";
-import { postSrv } from "../transport/http.js";
 import { flushAll } from "../storage/stats.js";
 import { AXIS_KEYS, valueForMetric } from "../stats/axes.js";
 
-const MAX_ENTRIES = 100;
+const MAX_ENTRIES = 200;
+
+// metric -> sorted [{name, score}] (descending). Replaced atomically by
+// rebuildLeaderboard so handlers never see a half-built table.
+let snapshot = Object.create(null);
+
+export function snapshotSlice(metric, limit) {
+  const list = snapshot[metric];
+  if (!Array.isArray(list)) return [];
+  const n = Math.max(0, Math.min(limit, list.length));
+  return list.slice(0, n);
+}
 
 function* scanAllStats(into) {
   const ids = world.getDynamicPropertyIds();
@@ -34,21 +44,27 @@ function buildEntries(rows, metric) {
   return out;
 }
 
+/**
+ * Periodically rebuild the in-memory snapshot (PLAN §10.6 pull mode). core
+ * asks for slices via `leaderboard.fetch`; we never POST. Cooperative
+ * generator so a large scan doesn't block the tick.
+ */
 export function* rebuildLeaderboard() {
   flushAll();
   const rows = [];
   yield* scanAllStats(rows);
 
+  const next = Object.create(null);
   for (const metric of AXIS_KEYS) {
-    const entries = buildEntries(rows, metric);
-    if (entries.length === 0) { yield; continue; }
-    postSrv("leaderboard.update", { metric, entries }).catch(err => {
-      console.warn("[leaderboard] post failed", metric, err);
-    });
+    next[metric] = buildEntries(rows, metric);
     yield;
   }
+  snapshot = next;
 }
 
 export function startLeaderboardJob(intervalTicks) {
+  // First rebuild fires at ~10s so an early `leaderboard.fetch` from core
+  // doesn't return empty for the full intervalTicks window.
+  system.runTimeout(() => system.runJob(rebuildLeaderboard()), 200);
   system.runInterval(() => system.runJob(rebuildLeaderboard()), intervalTicks);
 }

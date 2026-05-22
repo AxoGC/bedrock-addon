@@ -10,7 +10,7 @@ export const POST_TIMEOUT_SEC = 10;
 export const STATS_KEY_PREFIX = "stats:";
 export const STATS_FLUSH_INTERVAL_TICKS = 60 * 20;
 export const HEARTBEAT_INTERVAL_TICKS   = 30 * 20;
-export const LEADERBOARD_INTERVAL_TICKS = 60 * 60 * 20;
+export const LEADERBOARD_INTERVAL_TICKS = 5 * 60 * 20;
 export const CLEANUP_INTERVAL_TICKS     = 7 * 24 * 3600 * 20;
 export const PLAY_TIME_TICK_INTERVAL    = 20;
 
